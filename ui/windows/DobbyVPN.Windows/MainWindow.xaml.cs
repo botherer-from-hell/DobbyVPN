@@ -1668,6 +1668,9 @@ public sealed partial class MainWindow : Window
                 _diagnostics.RecordInfo("logs.backend-ingested", "Backend log entry ingested", new
                 {
                     backend_entry_id = entry.EntryId,
+                    backend_entry_message = entry.Message,
+                    backend_entry_level = entry.Level,
+                    backend_entry_source = entry.Source,
                     follows_tail = entry.FollowsTail,
                 });
             if (preview.Error != _logsError)

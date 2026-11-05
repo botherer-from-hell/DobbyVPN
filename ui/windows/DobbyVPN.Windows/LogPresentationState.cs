@@ -15,7 +15,8 @@ internal sealed class LogPresentationState
     private bool _hasSeededBackendEntryIds;
     private (long Generation, double Height)? _settledTailAlignment;
 
-    internal readonly record struct BackendEntryAcknowledgement(string EntryId, bool FollowsTail);
+    internal readonly record struct BackendEntryAcknowledgement(
+        string EntryId, string Message, string Level, string Source, bool FollowsTail);
 
     public IReadOnlyList<NativeDiagnostics.Entry> LatestEntries => _latestEntries;
     public IReadOnlyList<NativeDiagnostics.Entry> VisibleEntries => _visibleEntries;
@@ -31,7 +32,8 @@ internal sealed class LogPresentationState
         var acknowledgements = _hasSeededBackendEntryIds
             ? latestEntries
                 .Where(entry => IsBackendEntry(entry) && !_latestBackendEntryIds.Contains(entry.Id))
-                .Select(entry => new BackendEntryAcknowledgement(entry.Id, FollowsTail))
+                .Select(entry => new BackendEntryAcknowledgement(
+                    entry.Id, entry.Message, entry.Level, entry.Source, FollowsTail))
                 .ToArray()
             : Array.Empty<BackendEntryAcknowledgement>();
 
