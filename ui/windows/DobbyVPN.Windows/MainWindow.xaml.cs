@@ -1511,7 +1511,7 @@ public sealed partial class MainWindow : Window
         }
         if (directManipulation || scrollbarInteraction)
             ObserveLogPresentationForScroll(directManipulation ? "direct-manipulation" : "scrollbar-interaction",
-                isIntermediate);
+                isIntermediate, movedTowardEarlierEntries: offsetDelta < 0);
         if (!_updatingLogs && _logPresentation.FollowsTail) RenderLogs();
     }
 
@@ -1533,12 +1533,13 @@ public sealed partial class MainWindow : Window
             state = CaptureLogScrollDiagnosticState(),
         });
 
-    private void ObserveLogPresentationForScroll(string cause, bool isIntermediate,
+    private void ObserveLogPresentationForScroll(string cause, bool isIntermediate, bool movedTowardEarlierEntries,
         long? gestureId = null, string? direction = null)
     {
         var wasFollowingTail = _logPresentation.FollowsTail;
-        _logPresentation.ObserveUserScroll(IsLogScrollAtBottom());
-        RecordLogFollowTransition(cause, wasFollowingTail, gestureId, direction, isIntermediate);
+        _logPresentation.ObserveUserScroll(IsLogScrollAtBottom(), movedTowardEarlierEntries);
+        RecordLogFollowTransition(cause, wasFollowingTail, gestureId, direction, isIntermediate,
+            movedTowardEarlierEntries);
     }
 
     private void ObserveDirectedLogDownScroll(bool isIntermediate)
@@ -1550,7 +1551,8 @@ public sealed partial class MainWindow : Window
     }
 
     private void RecordLogFollowTransition(string cause, bool wasFollowingTail,
-        long? gestureId = null, string? direction = null, bool? isIntermediate = null)
+        long? gestureId = null, string? direction = null, bool? isIntermediate = null,
+        bool? movedTowardEarlierEntries = null)
     {
         if (wasFollowingTail == _logPresentation.FollowsTail) return;
         _diagnostics.RecordInfo("logs.follow-state-transition", "Log tail-follow state changed", new
@@ -1559,6 +1561,7 @@ public sealed partial class MainWindow : Window
             direction,
             cause,
             is_intermediate = isIntermediate,
+            moved_toward_earlier_entries = movedTowardEarlierEntries,
             follows_tail_before = wasFollowingTail,
             follows_tail_after = _logPresentation.FollowsTail,
             state = CaptureLogScrollDiagnosticState(),
